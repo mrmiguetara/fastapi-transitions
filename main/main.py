@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
-from transitions.extensions import GraphMachine as Machine
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -13,18 +12,6 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-states=['solid', 'liquid', 'gas', 'plasma']
-
-# And some transitions between states. We're lazy, so we'll leave out
-# the inverse phase transitions (freezing, condensation, etc.).
-transitions = [
-    { 'trigger': 'melt', 'source': 'solid', 'dest': 'liquid' },
-    { 'trigger': 'evaporate', 'source': 'liquid', 'dest': 'gas' },
-    { 'trigger': 'sublimate', 'source': 'solid', 'dest': 'gas' },
-    { 'trigger': 'ionize', 'source': 'gas', 'dest': 'plasma' },
-    { 'trigger': 'proscia', 'source': 'solid', 'dest': 'plasma' },
-    { 'trigger': 'deproscia', 'source': 'plasma', 'dest': 'solid' }
-]
 
 # Dependency
 def get_db():
@@ -55,9 +42,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    machine = Machine(model=db_user, states=states, initial=db_user.state, transitions=transitions)
-
-    db_user.deproscia()
+    db_user.evaporate()
 
     g = db_user.get_graph()
     g.draw('test3')

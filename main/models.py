@@ -1,6 +1,6 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-from transitions import Machine
+from transitions.extensions import GraphMachine as Machine
 
 
 from .database import Base
@@ -32,6 +32,7 @@ class User(Base):
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
+        machine = Machine(model=self, states=states, transitions=transitions, initial=self.state)
         
 class Item(Base):
 

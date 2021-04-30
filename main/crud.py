@@ -1,15 +1,29 @@
 from sqlalchemy.orm import Session
 
 
+from transitions.extensions import GraphMachine as Machine
 
 from . import models, schemas
 
+states=['solid', 'liquid', 'gas', 'plasma']
 
+# And some transitions between states. We're lazy, so we'll leave out
+# the inverse phase transitions (freezing, condensation, etc.).
+transitions = [
+    { 'trigger': 'melt', 'source': 'solid', 'dest': 'liquid' },
+    { 'trigger': 'evaporate', 'source': 'liquid', 'dest': 'gas' },
+    { 'trigger': 'sublimate', 'source': 'solid', 'dest': 'gas' },
+    { 'trigger': 'ionize', 'source': 'gas', 'dest': 'plasma' },
+    { 'trigger': 'proscia', 'source': 'solid', 'dest': 'plasma' },
+    { 'trigger': 'deproscia', 'source': 'plasma', 'dest': 'solid' }
+]
 
 
 def get_user(db: Session, user_id: int):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    machine = Machine(model=db_user, states=states, initial=db_user.state, transitions=transitions)
 
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    return db_user
 
 
 
@@ -30,6 +44,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 def create_user(db: Session, user: schemas.UserCreate):
     fake_hashed_password = user.password + "notreallyhashed"
     db_user = models.User(email=user.email, hashed_password=fake_hashed_password, state=user.state)
+    print(dir(db_user))
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
