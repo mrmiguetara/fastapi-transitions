@@ -5,6 +5,7 @@ from transitions.extensions import GraphMachine as Machine
 
 from . import models, schemas
 
+# TODO: Mixin model (Status Class)
 states=['solid', 'liquid', 'gas', 'plasma']
 
 # And some transitions between states. We're lazy, so we'll leave out
@@ -21,7 +22,7 @@ transitions = [
 
 def get_user(db: Session, user_id: int):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
-    machine = Machine(model=db_user, states=states, initial=db_user.state, transitions=transitions)
+    # machine = Machine(model=db_user, states=states, initial=db_user.state, transitions=transitions)
 
     return db_user
 
@@ -43,7 +44,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 
 def create_user(db: Session, user: schemas.UserCreate):
     fake_hashed_password = user.password + "notreallyhashed"
-    db_user = models.User(email=user.email, hashed_password=fake_hashed_password, state=user.state)
+    db_user = models.User(email=user.email, hashed_password=fake_hashed_password, user_state=user.user_state)
     print(dir(db_user))
     db.add(db_user)
     db.commit()

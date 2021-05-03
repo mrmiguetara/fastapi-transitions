@@ -1,22 +1,12 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-from transitions.extensions import GraphMachine as Machine
+from transitions import Machine
 
 
 from .database import Base
 
-states=['solid', 'liquid', 'gas', 'plasma']
-
-# And some transitions between states. We're lazy, so we'll leave out
-# the inverse phase transitions (freezing, condensation, etc.).
-transitions = [
-    { 'trigger': 'melt', 'source': 'solid', 'dest': 'liquid' },
-    { 'trigger': 'evaporate', 'source': 'liquid', 'dest': 'gas' },
-    { 'trigger': 'sublimate', 'source': 'solid', 'dest': 'gas' },
-    { 'trigger': 'ionize', 'source': 'gas', 'dest': 'plasma' }
-]
-
-class User(Base):
+from .machine import UserMachineMixin
+class User(Base, UserMachineMixin):
 
     __tablename__ = "users"
 
@@ -24,16 +14,13 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    state = Column(String)
+    user_state = Column(String)
     is_active = Column(Boolean, default=True)
 
     items = relationship("Item", back_populates="owner")
 
-
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
-        machine = Machine(model=self, states=states, transitions=transitions, initial=self.state)
-        
 class Item(Base):
 
     __tablename__ = "items"

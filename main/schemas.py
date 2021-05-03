@@ -39,14 +39,14 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
 
     password: str
-    state: str
+    user_state: str
 
 
 
 class User(UserBase):
     id: int
     is_active: bool
-    state: str
+    user_state: str
     items: List[Item] = []
 
     class Config:
